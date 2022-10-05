@@ -3,7 +3,9 @@ using DTK.Video;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,8 +22,11 @@ namespace DTKSoftDevTest
             parameters.MaxPlateWidth = 300;
             LPREngine engine = new LPREngine(parameters, true, OnLicensePlateDetected);
             VideoCapture videoCap = new VideoCapture(OnFrameCaptured, OnCaptureError, engine);
+
+            
+
             videoCap.StartCaptureFromIPCamera("rtsp://platerec:8S5AZ7YasGc3m4@video.platerecognizer.com:8554/demo");
-            Thread.Sleep(600000);
+            Console.ReadKey();
         }
 
         static void OnFrameCaptured(VideoCapture videoCap, VideoFrame frame, object customObject)
@@ -39,8 +44,18 @@ namespace DTKSoftDevTest
 
         static void OnLicensePlateDetected(LPREngine engine, LicensePlate plate)
         {
-            Console.WriteLine(string.Format("Plate text: {0} Country: {1} Confidence: {2}",
+            Console.WriteLine(string.Format($"Plate text: {0} Country: {1} Confidence: {2}, Path: {Path.GetFullPath(Assembly.GetEntryAssembly().Location)}",
                    plate.Text, plate.CountryCode, plate.Confidence));
+
+
+            var rootDirectory = $"{Path.GetDirectoryName(Assembly.GetAssembly(typeof(Program)).Location)}/Images/{plate.Text}";
+
+            if (!Directory.Exists(rootDirectory))            
+                Directory.CreateDirectory(rootDirectory);            
+
+            plate.Image.Save($"{rootDirectory}/car_{plate.DateTime:dd-MM-yyyy-HH-mm-ss.fff}.jpg");
+            plate.PlateImage.Save($"{rootDirectory}/plate_{plate.DateTime:dd-MM-yyyy-HH-mm-ss.fff}.jpg");
+
             plate.Dispose();
         }
 
