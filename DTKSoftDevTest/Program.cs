@@ -33,9 +33,30 @@ namespace DTKSoftDevTest
             LPREngine engine = new LPREngine(parameters, true, OnLicensePlateDetected);
             VideoCapture videoCap = new VideoCapture(OnFrameCaptured, OnCaptureError, engine);
 
-            
+            Console.WriteLine("Welcome to Test Product...");
 
-            videoCap.StartCaptureFromIPCamera("rtsp://platerec:8S5AZ7YasGc3m4@video.platerecognizer.com:8554/demo");
+            var selectedOption = string.Empty;
+            while (selectedOption != "1" && selectedOption != "2")
+            {
+                Console.WriteLine("Please choose your option:\n1 for (from RTCP stream)\n2 for (from video file)");
+                selectedOption = Console.ReadLine().Trim();
+            }
+
+            var sourceInformation = selectedOption == "1" ? "RTCP stream URL" : "video file path";
+
+            var sourcePath = string.Empty;
+            while (string.IsNullOrEmpty(sourcePath))
+            {
+                Console.WriteLine($"Please enter {sourceInformation}");
+                sourcePath = Console.ReadLine().Trim();
+            }
+            
+            if (selectedOption == "1")
+                videoCap.StartCaptureFromIPCamera(sourcePath);
+
+            if (selectedOption == "2")
+                videoCap.StartCaptureFromFile(sourcePath, 1);
+
             Console.ReadKey();
         }
 
@@ -48,22 +69,21 @@ namespace DTKSoftDevTest
             }
             catch (Exception ex)
             {
-                throw;
+                Console.WriteLine($"Error has occured.\nError message: {ex.Message}.\nStaceTrace: {ex.StackTrace}.");
             }
         }
 
         static void OnLicensePlateDetected(LPREngine engine, LicensePlate plate)
         {
-            Console.WriteLine(string.Format($"Plate text: {0} Country: {1} Confidence: {2}, Path: {Path.GetFullPath(Assembly.GetEntryAssembly().Location)}",
-                   plate.Text, plate.CountryCode, plate.Confidence));
 
+            Console.WriteLine($"Plate text: {plate.Text} Country: {plate.CountryCode} Confidence: {plate.Confidence}\nCoordinates X: {plate.X} Y: {plate.Y}\nHeight: {plate.Height} Width: {plate.Width}\n\n");
 
             var rootDirectory = $"{Path.GetDirectoryName(Assembly.GetAssembly(typeof(Program)).Location)}/Images/{plate.Text}";
 
             if (!Directory.Exists(rootDirectory))            
                 Directory.CreateDirectory(rootDirectory);            
 
-            plate.Image.Save($"{rootDirectory}/car_{plate.DateTime:dd-MM-yyyy-HH-mm-ss.fff}.jpg");
+            plate.Image.Save($"{rootDirectory}/car_{plate.DateTime:dd-MM-yyyy-HH-mm-ss.fff}__X_{plate.X}_Y_{plate.Y}_height_{plate.Height}_width_{plate.Width}.jpg");
             plate.PlateImage.Save($"{rootDirectory}/plate_{plate.DateTime:dd-MM-yyyy-HH-mm-ss.fff}.jpg");
 
             plate.Dispose();
