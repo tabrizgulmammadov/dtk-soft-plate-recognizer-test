@@ -20,6 +20,16 @@ namespace DTKSoftDevTest
             parameters.Countries = "AZ";
             parameters.MinPlateWidth = 80;
             parameters.MaxPlateWidth = 300;
+
+            // Adding test zone for detecting vechiles in specific rectangle zones
+            // (this is test values for creating rectangle zone in left middle side in overall view)
+            var recognitionZoneIndex = parameters.AddZone();
+            var recognitionZonePoint1 = parameters.AddZonePoint(recognitionZoneIndex, 0, 300);
+            var recognitionZonePoint2 = parameters.AddZonePoint(recognitionZoneIndex, 0, 900);
+            var recognitionZonePoint3 = parameters.AddZonePoint(recognitionZoneIndex, 900, 300);
+            var recognitionZonePoint4 = parameters.AddZonePoint(recognitionZoneIndex, 900, 900);
+
+
             LPREngine engine = new LPREngine(parameters, true, OnLicensePlateDetected);
             VideoCapture videoCap = new VideoCapture(OnFrameCaptured, OnCaptureError, engine);
 
